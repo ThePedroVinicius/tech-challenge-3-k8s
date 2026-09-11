@@ -1,0 +1,47 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+
+metadata:
+  name: auth-db
+  namespace: toggle-prod
+
+spec:
+  refreshInterval: 1h
+
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+
+  target:
+    name: auth-secret
+    creationPolicy: Owner
+    template:
+      type: Opaque
+      data:
+        DATABASE_URL: "postgres://{{ .username }}:{{ .password }}@{{ .host }}:{{ .port }}/{{ .db_name }}?sslmode=require"
+
+  data:
+    - secretKey: username
+      remoteRef:
+        key: tech-challenge/rds-auth
+        property: username
+
+    - secretKey: password
+      remoteRef:
+        key: tech-challenge/rds-auth
+        property: password
+
+    - secretKey: host
+      remoteRef:
+        key: tech-challenge/rds-auth
+        property: host
+
+    - secretKey: port
+      remoteRef:
+        key: tech-challenge/rds-auth
+        property: port
+
+    - secretKey: db_name
+      remoteRef:
+        key: tech-challenge/rds-auth
+        property: db_name

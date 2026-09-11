@@ -1,0 +1,42 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+
+metadata:
+  name: targeting-db
+  namespace: toggle-prod
+
+spec:
+  refreshInterval: 1h
+
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+
+  target:
+    name: targeting-secret
+    creationPolicy: Owner
+    template:
+      type: Opaque
+      data:
+        DATABASE_URL: "postgres://{{ .username }}:{{ .password }}@{{ .host }}:{{ .port }}/targeting_db?sslmode=require"
+
+  data:
+    - secretKey: username
+      remoteRef:
+        key: tech-challenge/rds-flag
+        property: username
+
+    - secretKey: password
+      remoteRef:
+        key: tech-challenge/rds-flag
+        property: password
+
+    - secretKey: host
+      remoteRef:
+        key: tech-challenge/rds-flag
+        property: host
+
+    - secretKey: port
+      remoteRef:
+        key: tech-challenge/rds-flag
+        property: port
