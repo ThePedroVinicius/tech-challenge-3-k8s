@@ -32,7 +32,7 @@ A missão desse projeto é automatizar toda a infraestrutura e o ciclo de vida d
 
 
 
-**## Arquitetura**
+## Arquitetura
 
 ![arquitetura](./img/arquitetura.png)
 
@@ -52,7 +52,7 @@ O detalhamento da Implementação de cada parte está no seu readme.md
 
 - E os Manifestos do Terraform, no repositório: https://github.com/castilhoarth/tech-challenge-3-terraform
 
-## 4. Desafios e Decisões do Projeto
+## Desafios e Decisões do Projeto
 
 #### Repositórios
 
