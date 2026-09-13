@@ -1098,5 +1098,5 @@ O que dispara o ArgoCD para atualizar os pods.
 
 ## 7 Video de Apresentação
 
-
+https://www.youtube.com/watch?v=TfDE35N_Ifg
 
