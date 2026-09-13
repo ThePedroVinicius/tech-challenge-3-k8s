@@ -6,7 +6,7 @@
 
 - **Projeto:** Toggle Master Microservices
 - **Fase:** 03 - IaC, CI/CD e DevSecOps
-- **Integrantes:** Grupo 53
+- **Integrantes:** Grupo 68
   - Arthur de Castilho Nascimento - RM371601 - [castartx@gmail.com](mailto:castartx@gmail.com)
   - Gerusa Fernandes Lobo Nogueira - RM367568 - [gerusalobo@gmail.com](mailto:gerusalobo@gmail.com)
   - José Henrique Cavalcanti de Melo Filho -  RM 372074 - [meloricke.bra@gmail.com](mailto:meloricke.bra@gmail.com)
