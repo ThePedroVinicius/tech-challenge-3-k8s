@@ -1,0 +1,29 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: analytics-runtime-config
+  namespace: toggle-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  refreshInterval: 1h
+
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+
+  target:
+    name: analytics-runtime-config
+    creationPolicy: Owner
+
+  data:
+
+    - secretKey: AWS_SQS_URL
+      remoteRef:
+        key: tech-challenge/evaluation-config
+        property: AWS_SQS_URL
+
+    - secretKey: AWS_REGION
+      remoteRef:
+        key: tech-challenge/evaluation-config
+        property: AWS_REGION

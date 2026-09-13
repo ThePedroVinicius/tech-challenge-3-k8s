@@ -1,0 +1,24 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: evaluation-secret
+  namespace: toggle-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+
+spec:
+  refreshInterval: 1h
+
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+
+  target:
+    name: evaluation-secret
+    creationPolicy: Owner
+
+  data:
+    - secretKey: SERVICE_API_KEY
+      remoteRef:
+        key: tech-challenge/evaluation-api-key
+        property: SERVICE_API_KEY

@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: flag-service
   namespace: toggle-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   replicas: 1
   selector:
@@ -15,7 +17,7 @@ spec:
     spec:
       containers:
         - name: flag-service
-          image: 576394965690.dkr.ecr.us-east-1.amazonaws.com/flag-service:sha-8ae67a5
+          image: 576394965690.dkr.ecr.us-east-1.amazonaws.com/flag-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8002

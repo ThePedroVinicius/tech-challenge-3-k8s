@@ -4,6 +4,8 @@ kind: ScaledObject
 metadata:
   name: analytics-sqs-scaler
   namespace: toggle-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
 
 spec:
 
@@ -18,16 +20,16 @@ spec:
 
   triggers:
 
-  - type: aws-sqs-queue
+    - type: aws-sqs-queue
 
-    metadata:
+      metadata:
 
-      queueURL: https://sqs.us-east-1.amazonaws.com/708993007071/evaluation-analytics-queue
+        queueURLFromEnv: AWS_SQS_URL
 
-      queueLength: "5"
+        queueLength: "5"
 
-      awsRegion: us-east-1
+        awsRegion: us-east-1
 
-    authenticationRef:
+      authenticationRef:
 
-      name: analytics-aws-auth
+        name: analytics-aws-auth

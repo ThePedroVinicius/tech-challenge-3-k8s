@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cluster-autoscaler
+  namespace: kube-system
+  labels:
+    app: cluster-autoscaler
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: cluster-autoscaler
+
+  template:
+    metadata:
+      labels:
+        app: cluster-autoscaler
+
+    spec:
+      serviceAccountName: cluster-autoscaler
+
+      priorityClassName: system-cluster-critical
+
+      nodeSelector:
+        kubernetes.io/os: linux
+
+      containers:
+        - name: cluster-autoscaler
+
+          image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.36.1
+          imagePullPolicy: Always
+
+          command:
+            - ./cluster-autoscaler
+            - --v=4
+            - --stderrthreshold=info
+            - --cloud-provider=aws
+            - --expander=least-waste
+            - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/togglemaster-eks
+            - --balance-similar-node-groups
+            - --skip-nodes-with-local-storage=false
+            - --skip-nodes-with-system-pods=false
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 100m
+              memory: 512Mi
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault

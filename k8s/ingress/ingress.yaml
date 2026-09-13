@@ -4,6 +4,8 @@ kind: Ingress
 metadata:
   name: togglemaster-ingress
   namespace: toggle-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"

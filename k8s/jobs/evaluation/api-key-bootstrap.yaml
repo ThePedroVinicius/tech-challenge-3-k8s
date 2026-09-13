@@ -1,0 +1,152 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: evaluation-api-key-bootstrap
+  namespace: toggle-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+
+  template:
+    metadata:
+      labels:
+        app: evaluation-api-key-bootstrap
+
+    spec:
+      serviceAccountName: evaluation-api-key-bootstrap
+      restartPolicy: Never
+
+      containers:
+        - name: bootstrap
+          image: alpine:3.20
+
+          env:
+            - name: AWS_REGION
+              value: "us-east-1"
+
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service:8001"
+
+            - name: AUTH_MASTER_SECRET
+              value: "tech-challenge/auth-master-key"
+
+            - name: EVALUATION_API_KEY_SECRET
+              value: "tech-challenge/evaluation-api-key"
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+
+              echo "Instalando dependências..."
+              apk add --no-cache aws-cli curl jq
+
+              echo "Aguardando Auth Service..."
+
+              until curl -fsS \
+                --max-time 5 \
+                "${AUTH_SERVICE_URL}/health" \
+                >/dev/null; do
+                sleep 5
+              done
+
+              echo "Auth Service disponível."
+
+              echo "Obtendo MASTER_KEY..."
+
+              MASTER_KEY="$(
+                aws secretsmanager get-secret-value \
+                  --secret-id "${AUTH_MASTER_SECRET}" \
+                  --region "${AWS_REGION}" \
+                  --query 'SecretString' \
+                  --output text |
+                jq -r '.MASTER_KEY'
+              )"
+
+              if [ -z "${MASTER_KEY}" ] || [ "${MASTER_KEY}" = "null" ]; then
+                echo "MASTER_KEY não encontrada."
+                exit 1
+              fi
+
+              echo "Verificando API key existente..."
+
+              SECRET_VALUE="$(
+                aws secretsmanager get-secret-value \
+                  --secret-id "${EVALUATION_API_KEY_SECRET}" \
+                  --region "${AWS_REGION}" \
+                  --query 'SecretString' \
+                  --output text 2>/dev/null || true
+              )"
+
+              EXISTING_API_KEY=""
+
+              if [ -n "${SECRET_VALUE}" ] && [ "${SECRET_VALUE}" != "None" ]; then
+                EXISTING_API_KEY="$(
+                  printf '%s' "${SECRET_VALUE}" |
+                  jq -r '.SERVICE_API_KEY // empty'
+                )"
+              fi
+
+              if [ -n "${EXISTING_API_KEY}" ]; then
+                echo "API key encontrada. Validando..."
+
+                HTTP_STATUS="$(
+                  curl -sS \
+                    -o /dev/null \
+                    -w '%{http_code}' \
+                    --max-time 10 \
+                    -H "Authorization: Bearer ${EXISTING_API_KEY}" \
+                    "${AUTH_SERVICE_URL}/validate"
+                )"
+
+                if [ "${HTTP_STATUS}" = "200" ]; then
+                  echo "API key existente é válida."
+                  exit 0
+                fi
+
+                echo "API key existente é inválida. Será criada uma nova."
+              else
+                echo "Nenhuma API key encontrada. Será criada uma nova."
+              fi
+
+              echo "Criando API key para Evaluation Service..."
+
+              RESPONSE="$(
+                curl -fsS \
+                  --max-time 10 \
+                  -X POST \
+                  -H "Authorization: Bearer ${MASTER_KEY}" \
+                  -H "Content-Type: application/json" \
+                  -d '{"name":"evaluation-service"}' \
+                  "${AUTH_SERVICE_URL}/admin/keys"
+              )"
+
+              NEW_API_KEY="$(
+                printf '%s' "${RESPONSE}" |
+                jq -r '.key // empty'
+              )"
+
+              if [ -z "${NEW_API_KEY}" ]; then
+                echo "Auth Service não retornou uma API key."
+                exit 1
+              fi
+
+              echo "Salvando nova API key no Secrets Manager..."
+
+              SECRET_JSON="$(
+                jq -n \
+                  --arg key "${NEW_API_KEY}" \
+                  '{SERVICE_API_KEY: $key}'
+              )"
+
+              aws secretsmanager put-secret-value \
+                --secret-id "${EVALUATION_API_KEY_SECRET}" \
+                --secret-string "${SECRET_JSON}" \
+                --region "${AWS_REGION}" \
+                >/dev/null
+
+              echo "API key do Evaluation Service configurada com sucesso."

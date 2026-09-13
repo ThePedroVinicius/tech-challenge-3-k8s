@@ -1,0 +1,144 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-autoscaler
+
+rules:
+  # Events e endpoints
+  - apiGroups: [""]
+    resources:
+      - events
+      - endpoints
+    verbs:
+      - create
+      - patch
+
+  # Eviction de pods
+  - apiGroups: [""]
+    resources:
+      - pods/eviction
+    verbs:
+      - create
+
+  # Atualização do status dos pods
+  - apiGroups: [""]
+    resources:
+      - pods/status
+    verbs:
+      - update
+
+  # Endpoint utilizado pelo Cluster Autoscaler
+  - apiGroups: [""]
+    resources:
+      - endpoints
+    resourceNames:
+      - cluster-autoscaler
+    verbs:
+      - get
+      - update
+
+  # Nodes
+  - apiGroups: [""]
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+
+  # Recursos básicos do cluster
+  - apiGroups: [""]
+    resources:
+      - namespaces
+      - pods
+      - services
+      - replicationcontrollers
+      - persistentvolumeclaims
+      - persistentvolumes
+    verbs:
+      - get
+      - list
+      - watch
+
+  # ReplicaSets e DaemonSets - API antiga
+  - apiGroups: ["extensions"]
+    resources:
+      - replicasets
+      - daemonsets
+    verbs:
+      - get
+      - list
+      - watch
+
+  # PodDisruptionBudgets
+  - apiGroups: ["policy"]
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - get
+      - list
+      - watch
+
+  # Workloads - API atual
+  - apiGroups: ["apps"]
+    resources:
+      - statefulsets
+      - replicasets
+      - daemonsets
+    verbs:
+      - get
+      - list
+      - watch
+
+  # Resource APIs do Kubernetes 1.36
+  - apiGroups: ["resource.k8s.io"]
+    resources:
+      - deviceclasses
+      - resourceslices
+      - resourceclaims
+    verbs:
+      - get
+      - list
+      - watch
+
+  # Storage
+  - apiGroups: ["storage.k8s.io"]
+    resources:
+      - storageclasses
+      - csinodes
+      - csidrivers
+      - csistoragecapacities
+      - volumeattachments
+    verbs:
+      - get
+      - list
+      - watch
+
+  # Jobs
+  - apiGroups:
+      - batch
+      - extensions
+    resources:
+      - jobs
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+
+  # Leader election
+  - apiGroups: ["coordination.k8s.io"]
+    resources:
+      - leases
+    verbs:
+      - create
+
+  - apiGroups: ["coordination.k8s.io"]
+    resourceNames:
+      - cluster-autoscaler
+    resources:
+      - leases
+    verbs:
+      - get
+      - update

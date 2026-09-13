@@ -4,6 +4,8 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: evaluation-service-hpa
   namespace: toggle-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
 
 spec:
 
