@@ -1,83 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
-
 metadata:
   name: analytics-service
   namespace: toggle-prod
   annotations:
     argocd.argoproj.io/sync-wave: "7"
-
 spec:
-
   replicas: 1
-
   selector:
     matchLabels:
       app: analytics-service
-
-
   template:
-
     metadata:
       labels:
         app: analytics-service
-
-
     spec:
-
       serviceAccountName: analytics-service
-
       containers:
-
         - name: analytics-service
-
-          image: 576394965690.dkr.ecr.us-east-1.amazonaws.com/analytics-service:latest
-
+          image: 576394965690.dkr.ecr.us-east-1.amazonaws.com/analytics-service:sha-cb52ef2
           imagePullPolicy: Always
-
-
           ports:
-
             - containerPort: 8005
-
-
           envFrom:
-
             - configMapRef:
                 name: analytics-config
-
             - secretRef:
                 name: analytics-runtime-config
-
-
           resources:
-
             requests:
               cpu: "50m"
               memory: "64Mi"
-
             limits:
               cpu: "250m"
               memory: "256Mi"
-
-
-
           readinessProbe:
-
             httpGet:
               path: /health
               port: 8005
-
             initialDelaySeconds: 10
             periodSeconds: 5
-
-
-
           livenessProbe:
-
             httpGet:
               path: /health
               port: 8005
-
             initialDelaySeconds: 30
             periodSeconds: 10
