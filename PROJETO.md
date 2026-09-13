@@ -1,7 +1,3 @@
----
-typora-root-url: ./img
----
-
 # Toggle Master Microservices - IaC, CI/CD e DevSecOps
 
 
@@ -36,9 +32,9 @@ A missão desse projeto é automatizar toda a infraestrutura e o ciclo de vida d
 
 
 
-## Arquitetura
+**## Arquitetura**
 
-![ChatGPT Image 13 de set. de 2026, 08_20_05-1789306219395-2](./ChatGPT Image 13 de set. de 2026, 08_20_05-1789306219395-2-1789314909821-8.png)
+![arquitetura](./img/arquitetura.png)
 
 Resumindo:
 
@@ -984,7 +980,7 @@ Esse teste ele pega a url do ingress assim como a MasterKey que está no secrets
 
 
 
-## Deploy Iac e CD
+**## Deploy Iac e CD**
 
 O processo inicia com o terraform para a criação da infra.
 
@@ -992,99 +988,97 @@ Como decisão de arquitetura, subimos via Terraform os ECRs previamente, para fa
 
 Configurando as credenciais do AWS CLI:
 
-​	aws configure --profile prod
+aws configure --profile prod
 
-​	aws sts get-caller-identity --profile prod
+aws sts get-caller-identity --profile prod
 
-​	export AWS_PROFILE=prod
+export AWS_PROFILE=prod
 
 E na sequencia startando o Terraform:
 
-![image-20260913115307530](./image-20260913115307530-1789311529561-1-1789314909821-9.png)
+![image-20260913115307530](./img/image-20260913115307530-1789311529561-1-1789314909821-9.png)
 
 Na sequencia vemos se tem algum problema e fazemos um plano para o deploy da infra:
 
-![image-20260913115423681](./image-20260913115423681-1789311529561-2-1789314909821-10.png)
+![image-20260913115423681](./img/image-20260913115423681-1789311529561-2-1789314909821-10.png)
 
 O plan é bem grande, ao final do plan temos todos os itens que serão criados: de VPC, ao cluester até o ngix e argoCD via Helm.
 
-![image-20260913115700911](./image-20260913115700911-1789314909819-7.png)
+![image-20260913115700911](./img/image-20260913115700911-1789314909819-7.png)
 
 Ao final a infra subiu.
 
-![image-20260913125209368](./image-20260913125209368-1789314909821-11.png)
+![image-20260913125209368](./img/image-20260913125209368-1789314909821-11.png)
 
 Rodamos então o state list para ver se toda a infra subiu.
 
-![image-20260913130200997](./image-20260913130200997.png)
+![image-20260913130200997](./img/image-20260913130200997.png)
 
 E um teste de infra:
 
-![image-20260913130334946](./image-20260913130334946.png)
+![image-20260913130334946](./img/image-20260913130334946.png)
 
 Nesse ponto vamos olhar se tudo subiu corretamente.
 
-So o argo está ativo
+Só o argo está ativo:
 
- ![image-20260913130827893](./image-20260913130827893.png)
+![image-20260913130827893](./img/image-20260913130827893.png)
 
 E se os nodes e pods subiram:
 
-![image-20260913130926058](./image-20260913130926058.png)
+![image-20260913130926058](./img/image-20260913130926058.png)
 
-
-
-![image-20260913130526906](./image-20260913130526906.png)
+![image-20260913130526906](./img/image-20260913130526906.png)
 
 Se os jobs rodaram:
 
-![image-20260913130606577](./image-20260913130606577.png)
+![image-20260913130606577](./img/image-20260913130606577.png)
 
 Se o ingress e os secrets estão ok:
 
-![image-20260913130712461](./image-20260913130712461.png)
+![image-20260913130712461](./img/image-20260913130712461.png)
 
-E então rodamos o teste de aplicação test2.sh
+E então rodamos o teste de aplicação test2.sh:
 
-![image-20260913131608221](./image-20260913131608221.png)
+![image-20260913131608221](./img/image-20260913131608221.png)
 
 E no teste também fazemos uma carga para testar o auto scaling:
 
-![image-20260913131255768](./image-20260913131255768.png)
+![image-20260913131255768](./img/image-20260913131255768.png)
 
-![image-20260913131343352](./image-20260913131343352.png)
+![image-20260913131343352](./img/image-20260913131343352.png)
 
- kubectl logs deployment/evaluation-service -n toggle-prod
+kubectl logs deployment/evaluation-service -n toggle-prod
 
-![image-20260913131748525](./image-20260913131748525.png)
+![image-20260913131748525](./img/image-20260913131748525.png)
 
 kubectl logs deployment/analytics-service -n toggle-prod
 
-![image-20260913131826540](./image-20260913131826540.png)
+![image-20260913131826540](./img/image-20260913131826540.png)
 
-## Deploy CI
+**## Deploy CI**
 
 Qualquer commit em um serviço starta a pipeline de testes.
 
 Foram criados 5 pipelines, uma para cada serviço.
 
-![image-20260913132922933](./image-20260913132922933.png)
+![image-20260913132922933](./img/image-20260913132922933.png)
 
 Após os testes e validação do serviço, caso aprovado nos testes, a pipeline cria a imagem e faz o deploy automatico no ECR.
 
-![image-20260913133040404](./image-20260913133040404.png)
+![image-20260913133040404](./img/image-20260913133040404.png)
 
-![image-20260913133140150](./image-20260913133140150.png)
+![image-20260913133140150](./img/image-20260913133140150.png)
 
-![image-20260913133243111](./image-20260913133243111.png)
+![image-20260913133243111](./img/image-20260913133243111.png)
 
 Na AWS:
 
-![image-20260913133351757](./image-20260913133351757.png)
+![image-20260913133351757](./img/image-20260913133351757.png)
 
 E atualiza também a url na imagem no deployment.yaml no Repositório dos k8s.
 
-![image-20260913133519255](./image-20260913133519255.png)
+![image-20260913133519255](./img/image-20260913133519255.png)
 
 O que dispara o ArgoCD para atualizar os pods.
 
